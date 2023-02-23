@@ -1,7 +1,14 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.models.Film;
 
@@ -17,8 +24,11 @@ import java.util.Map;
 @Slf4j
 public class FilmController {
 
-    Map<Integer, Film> films = new HashMap<>();
-    private static int generateId = 0;
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    private final Map<Integer, Film> films = new HashMap<>();
+    private int generateId = 0;
 
     @GetMapping
     public List<Film> getFilms() {
@@ -26,8 +36,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film film) {
-        checkRepeatFilmForCreate(film);
+    public @ResponseBody Film addFilm(@Valid @RequestBody Film film) {
         checkDateFilm(film);
         generateId++;
         film.setId(generateId);
@@ -36,22 +45,39 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film film) {
+    public @ResponseBody Film updateFilm(@Valid @RequestBody Film film) {
         checkExistIdForUpdate(film);
         checkDateFilm(film);
         films.put(film.getId(), film);
         return film;
     }
 
-    private void checkRepeatFilmForCreate(Film film) {
-        if (films.containsKey(film.getId())) {
-            log.error("Фильм с id " + film.getId() + " уже существует.");
-            throw new ValidationException("Фильм с id " + film.getId() + " уже существует.");
-        }
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<String> handleValidationException(ValidationException exception)
+            throws JsonProcessingException {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(objectMapper.writeValueAsString(exception));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<String> handleNotFoundException(NotFoundException exception)
+            throws JsonProcessingException {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(objectMapper.writeValueAsString(exception));
+    }
+
+    public void clearFilms() {
+        films.clear();
+        generateId = 0;
+    }
+
+
     private void checkDateFilm(Film film) {
-        if(film.getReleaseDate() == null){
+        if (film.getReleaseDate() == null) {
             return;
         }
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
@@ -61,10 +87,10 @@ public class FilmController {
 
     }
 
-    private void checkExistIdForUpdate(Film film){
+    private void checkExistIdForUpdate(Film film) {
         if (!films.containsKey(film.getId())) {
             log.error("Фильм с id " + film.getId() + " не существует.");
-            throw new ValidationException("Фильм с id " + film.getId() + " не существует.");
+            throw new NotFoundException("Фильм с id " + film.getId() + " не существует.");
         }
     }
 }
