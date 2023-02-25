@@ -28,7 +28,7 @@ public class FilmController {
     private ObjectMapper objectMapper;
 
     private final Map<Integer, Film> films = new HashMap<>();
-    private int generateId = 0;
+    private int generatedId = 0;
 
     @GetMapping
     public List<Film> getFilms() {
@@ -38,8 +38,8 @@ public class FilmController {
     @PostMapping
     public @ResponseBody Film addFilm(@Valid @RequestBody Film film) {
         checkDateFilm(film);
-        generateId++;
-        film.setId(generateId);
+        int id =  generateId();
+        film.setId(id);
         films.put(film.getId(), film);
         return film;
     }
@@ -72,7 +72,7 @@ public class FilmController {
 
     public void clearFilms() {
         films.clear();
-        generateId = 0;
+        generatedId = 0;
     }
 
 
@@ -92,5 +92,10 @@ public class FilmController {
             log.error("Фильм с id " + film.getId() + " не существует.");
             throw new NotFoundException("Фильм с id " + film.getId() + " не существует.");
         }
+    }
+
+    private int generateId(){
+        generatedId++;
+        return generatedId;
     }
 }

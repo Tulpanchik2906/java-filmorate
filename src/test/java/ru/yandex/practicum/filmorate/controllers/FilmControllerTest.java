@@ -15,6 +15,7 @@ import ru.yandex.practicum.filmorate.models.Film;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -33,6 +34,8 @@ public class FilmControllerTest {
     @Autowired
     private FilmController filmController;
 
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     @BeforeEach
     public void beforeEach() {
         filmController.clearFilms();
@@ -44,10 +47,8 @@ public class FilmControllerTest {
         mockMvc.perform(get("/films")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(result -> {
-                    Assertions.assertEquals("[]",
-                            result.getResponse().getContentAsString());
-                });
+                .andExpect(result -> Assertions.assertEquals("[]",
+                        result.getResponse().getContentAsString()));
 
     }
 
@@ -60,17 +61,15 @@ public class FilmControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-
+        String jsonFilmList = "[{\"id\":1,\"name\":\"Титаник\"," +
+                "\"description\":\"Фильм о любви и затонувшем корабле.\"" +
+                ",\"releaseDate\":\"1997-12-19\",\"duration\":194}]";
         mockMvc.perform(get("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(result -> {
-                    Assertions.assertEquals("[{\"id\":1,\"name\":\"Титаник\"," +
-                                    "\"description\":\"Фильм о любви и затонувшем корабле.\"" +
-                                    ",\"releaseDate\":\"1997-12-19\",\"duration\":194}]",
-                            result.getResponse().getContentAsString(StandardCharsets.UTF_8));
-                });
+                .andExpect(result -> Assertions.assertEquals(jsonFilmList,
+                        result.getResponse().getContentAsString(StandardCharsets.UTF_8)));
 
     }
 
@@ -78,19 +77,20 @@ public class FilmControllerTest {
     @Test
     public void testOkCreateFilm() {
         Film film = getAllFieldsFilm();
+        Film filmExp = getAllFieldsFilm();
         mockMvc.perform(post("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name")
-                        .value("Титаник"))
+                        .value(filmExp.getName()))
                 .andExpect(jsonPath("$.description")
-                        .value("Фильм о любви и затонувшем корабле."))
+                        .value(filmExp.getDescription()))
                 .andExpect(jsonPath("$.releaseDate")
-                    .value("1997-12-19"))
+                        .value(filmExp.getReleaseDate().format(dateFormatter)))
                 .andExpect(jsonPath("$.duration")
-                        .value("194"));
+                        .value(filmExp.getDuration()));
 
 
     }
@@ -99,6 +99,8 @@ public class FilmControllerTest {
     @Test
     public void testOkUpdateFilm() {
         Film film = getAllFieldsFilm();
+        Film filmExp = getAllFieldsFilm();
+        filmExp.setName("Посмотреть на Лео");
 
         mockMvc.perform(post("/films")
                         .content(getJsonFilm(film))
@@ -107,18 +109,19 @@ public class FilmControllerTest {
 
         film.setName("Посмотреть на Лео");
 
-        mockMvc.perform(post("/films")
+        mockMvc.perform(put("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.name")
-                        .value("Посмотреть на Лео"))
+                        .value(filmExp.getName()))
                 .andExpect(jsonPath("$.description")
-                        .value("Фильм о любви и затонувшем корабле."))
+                        .value(filmExp.getDescription()))
                 .andExpect(jsonPath("$.releaseDate")
-                        .value("1997-12-19"))
+                        .value(filmExp.getReleaseDate().format(dateFormatter)))
                 .andExpect(jsonPath("$.duration")
-                        .value("194"));
+                        .value(filmExp.getDuration()));
 
     }
 
@@ -161,14 +164,13 @@ public class FilmControllerTest {
     @Test
     public void testErrorWithMore200SymbolFilm() {
         Film film = getAllFieldsFilm();
-        film.setDescription(
-                "Пятеро друзей ( комик-группа «Шарло»), " +
-                        "приезжают в город Бризуль. " +
-                        "Здесь они хотят разыскать господина Огюста Куглова," +
-                        " который задолжал им деньги, а именно 20 миллионов. " +
-                        "о Куглов, который за время «своего отсутствия», " +
-                        "стал кандидатом Коломбани."
-        );
+        String descriptionStr = "Пятеро друзей ( комик-группа «Шарло»), " +
+                "приезжают в город Бризуль. " +
+                "Здесь они хотят разыскать господина Огюста Куглова," +
+                " который задолжал им деньги, а именно 20 миллионов. " +
+                "о Куглов, который за время «своего отсутствия», " +
+                "стал кандидатом Коломбани.";
+        film.setDescription(descriptionStr);
         checkPostAnnotationValidation(film, "Описание должно быть не более 200 символов");
     }
 
@@ -197,12 +199,9 @@ public class FilmControllerTest {
         mockMvc.perform(put("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andDo(h -> {
-                            Assertions.assertTrue(
-                                    h.getResolvedException().getMessage()
-                                            .contains("Фильм с id " + film.getId() + " не существует."));
-                        }
-                )
+                .andDo(h -> Assertions.assertTrue(
+                        h.getResolvedException().getMessage()
+                                .contains("Фильм с id " + film.getId() + " не существует.")))
                 .andExpect(status().isNotFound());
     }
 
@@ -225,11 +224,9 @@ public class FilmControllerTest {
         mockMvc.perform(post("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andDo(h -> {
-                            Assertions.assertTrue(
-                                    h.getResolvedException().getMessage()
-                                            .contains(errorText));
-                        }
+                .andDo(h -> Assertions.assertTrue(
+                        h.getResolvedException().getMessage()
+                                .contains(errorText))
                 )
                 .andExpect(status().is4xxClientError());
     }

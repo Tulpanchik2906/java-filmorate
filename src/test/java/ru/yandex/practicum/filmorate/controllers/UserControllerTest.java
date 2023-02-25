@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.models.User;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,6 +30,8 @@ public class UserControllerTest {
 
     @Autowired
     private UserController userController;
+
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @BeforeEach
     public void beforeEach() {
@@ -118,52 +121,61 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
+        String jsonExp = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
+                "\"login\":\"Login user\"," +
+                "\"name\":\"Name user\",\"birthday\":\"1998-10-15\"}]";
+
         mockMvc.perform(get("/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(result -> Assertions.assertEquals("[{\"id\":1,\"email\":\"user@yandex.ru\"," +
-                                "\"login\":\"Login user\"," +
-                                "\"name\":\"Name user\",\"birthday\":\"1998-10-15\"}]",
+                .andExpect(result -> Assertions.assertEquals(jsonExp,
                         result.getResponse().getContentAsString()));
     }
 
     @Test
     public void testCreateUser() throws Exception {
         User user = getAllFieldsUser();
+        User userExp = getAllFieldsUser();
+
         mockMvc.perform(post("/users")
                         .content(getJsonUser(user))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name")
-                        .value("Name user"))
+                        .value(userExp.getName()))
                 .andExpect(jsonPath("$.login")
-                        .value("Login user"))
+                        .value(userExp.getLogin()))
                 .andExpect(jsonPath("$.email")
-                        .value("user@yandex.ru"))
+                        .value(userExp.getEmail()))
                 .andExpect(jsonPath("$.birthday")
-                        .value("1998-10-15"));
+                        .value(userExp.getBirthday().format(dateFormatter)));
     }
 
     @Test
     public void testUpdateUser() throws Exception {
         User user = getAllFieldsUser();
+        User userExp = getAllFieldsUser();
+        userExp.setName("Update Name");
+
         mockMvc.perform(post("/users")
                         .content(getJsonUser(user))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+
         user.setName("Update Name");
+
         mockMvc.perform(put("/users")
                         .content(getJsonUser(user))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name")
-                        .value("Update Name"))
+                        .value(userExp.getName()))
                 .andExpect(jsonPath("$.login")
-                        .value("Login user"))
+                        .value(userExp.getLogin()))
                 .andExpect(jsonPath("$.email")
-                        .value("user@yandex.ru"))
+                        .value(userExp.getEmail()))
                 .andExpect(jsonPath("$.birthday")
-                        .value("1998-10-15"));
+                        .value(userExp.getBirthday().format(dateFormatter)));
     }
 
     @SneakyThrows

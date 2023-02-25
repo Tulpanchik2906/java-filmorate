@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 public class UserController {
     private final Map<Integer, User> users = new HashMap<>();
-    private int generateId = 0;
+    private int generatedId = 0;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -34,8 +34,8 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        generateId++;
-        user.setId(generateId);
+        int id = generateId();
+        user.setId(id);
         user.setName(getUserName(user));
         users.put(user.getId(), user);
         return user;
@@ -51,7 +51,7 @@ public class UserController {
 
     public void clearFilms() {
         users.clear();
-        generateId = 0;
+        generatedId = 0;
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -75,6 +75,11 @@ public class UserController {
             return user.getLogin();
         }
         return user.getName();
+    }
+
+    private int generateId(){
+        generatedId++;
+        return generatedId;
     }
 }
 
