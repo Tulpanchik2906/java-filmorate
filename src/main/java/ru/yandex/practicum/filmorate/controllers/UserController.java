@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.models.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -21,37 +22,33 @@ import java.util.Map;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
-    private int generatedId = 0;
+    private UserService userService;
+    private ObjectMapper objectMapper;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    public UserController(UserService userService, ObjectMapper objectMapper){
+        this.userService = userService;
+        this.objectMapper = objectMapper;
+    }
+
 
     @GetMapping
     public List<User> getUsers() {
-        return new ArrayList<>(users.values());
+        return userService.getUsers();
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        int id = generateId();
-        user.setId(id);
-        user.setName(getUserName(user));
-        users.put(user.getId(), user);
-        return user;
+        return userService.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        checkExistUserForUpdateUser(user);
-        user.setName(getUserName(user));
-        users.put(user.getId(), user);
-        return user;
+        return userService.updateUser(user);
     }
 
     public void clearFilms() {
-        users.clear();
-        generatedId = 0;
+        userService.clearFilms();
     }
 
     @ExceptionHandler(NotFoundException.class)
@@ -63,23 +60,5 @@ public class UserController {
                 .body(objectMapper.writeValueAsString(exception));
     }
 
-    private void checkExistUserForUpdateUser(User user) {
-        if (!users.containsKey(user.getId())) {
-            log.error("Пользователь с id " + user.getId() + " не существует.");
-            throw new NotFoundException("Пользователь с id " + user.getId() + " не существует.");
-        }
-    }
-
-    private String getUserName(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            return user.getLogin();
-        }
-        return user.getName();
-    }
-
-    private int generateId(){
-        generatedId++;
-        return generatedId;
-    }
 }
 
