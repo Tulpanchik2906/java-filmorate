@@ -122,8 +122,8 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        String jsonExp = "[{\"id\":1,\"email\":\"user@yandex.ru\",\"login\":\"Login user\"" +
-                ",\"name\":\"Name user\",\"birthday\":\"1998-10-15\",\"friendsIds\":null}]";
+        String jsonExp = "[{\"id\":1,\"email\":\"user@yandex.ru\",\"login\":\"Login user\"," +
+                "\"name\":\"Name user\",\"birthday\":\"1998-10-15\",\"friendsIds\":[]}]";
 
         mockMvc.perform(get("/users")
                         .contentType(MediaType.APPLICATION_JSON))

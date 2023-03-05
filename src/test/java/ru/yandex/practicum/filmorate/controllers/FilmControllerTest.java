@@ -62,8 +62,9 @@ public class FilmControllerTest {
                 .andExpect(status().isOk());
 
         String jsonFilmList = "[{\"id\":1,\"name\":\"Титаник\"," +
-                "\"description\":\"Фильм о любви и затонувшем корабле.\"" +
-                ",\"releaseDate\":\"1997-12-19\",\"duration\":194}]";
+                "\"description\":\"Фильм о любви и затонувшем корабле.\"," +
+                "\"releaseDate\":\"1997-12-19\",\"duration\":194," +
+                "\"likeUserIds\":[]}]";
         mockMvc.perform(get("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
