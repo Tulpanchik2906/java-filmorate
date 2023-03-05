@@ -92,7 +92,6 @@ public class FilmControllerTest {
                 .andExpect(jsonPath("$.duration")
                         .value(filmExp.getDuration()));
 
-
     }
 
     @SneakyThrows

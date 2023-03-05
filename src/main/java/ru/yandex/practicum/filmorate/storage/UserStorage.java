@@ -15,6 +15,8 @@ public interface UserStorage {
 
     public List<User> findAll();
 
+    public User getUserById(int id);
+
     public Map<Integer, User> getUsers();
 
     public void clear();

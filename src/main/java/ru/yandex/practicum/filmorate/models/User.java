@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class User {
@@ -22,4 +23,14 @@ public class User {
 
     @Past(message = "День рождение должно быть в прошлом.")
     private LocalDate birthday;
+
+    private Set<Integer> friendsIds;
+
+    public void addFriend(int friendId){
+        friendsIds.add(friendId);
+    }
+
+    public void deleteFriend(int friendId){
+        friendsIds.remove(friendId);
+    }
 }

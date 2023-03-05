@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Data
 public class Film {
@@ -20,4 +21,15 @@ public class Film {
 
     @Min(value = 1, message = "Длительность фильма должна быть больше 0 минут")
     private int duration;
+
+    private Set<Integer> likeUserIds;
+
+    public void addLike(int userId){
+        likeUserIds.add(userId);
+    }
+
+    public void deleteLike(int userId){
+        likeUserIds.remove(userId);
+    }
+
 }

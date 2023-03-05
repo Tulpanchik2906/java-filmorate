@@ -13,10 +13,7 @@ import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -30,11 +27,15 @@ public class UserController {
         this.userService = userService;
         this.objectMapper = objectMapper;
     }
-
-
+    
     @GetMapping
     public List<User> getUsers() {
         return userService.getUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable int id) {
+        return userService.getUserById(id);
     }
 
     @PostMapping
@@ -47,8 +48,13 @@ public class UserController {
         return userService.updateUser(user);
     }
 
+    @PutMapping("/{id}/friends/{friendId}")
+    public void putFriend(@PathVariable Integer id, @PathVariable Integer friendId){
+        userService.putFriend(id,friendId);
+    }
+
     public void clearFilms() {
-        userService.clearFilms();
+        userService.clearUsers();
     }
 
     @ExceptionHandler(NotFoundException.class)

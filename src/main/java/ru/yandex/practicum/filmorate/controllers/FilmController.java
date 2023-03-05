@@ -21,7 +21,6 @@ import java.util.List;
 @Slf4j
 public class FilmController {
 
-    @Autowired
     private ObjectMapper objectMapper;
 
     private FilmService filmService;
@@ -32,11 +31,14 @@ public class FilmController {
         this.filmService = filmService;
     }
 
-    private int generatedId = 0;
-
     @GetMapping
     public List<Film> getFilms() {
         return filmService.getFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Integer id) {
+        return filmService.getFilmById(id);
     }
 
     @PostMapping

@@ -17,6 +17,8 @@ public interface FilmStorage {
 
     public Map<Integer, Film> getFilms();
 
+    public Film getFilmById(int id);
+
     public void clear();
 
 }

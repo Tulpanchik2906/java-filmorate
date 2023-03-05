@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -23,9 +25,12 @@ public class FilmService {
         this.filmStorage = filmStorage;
     }
 
-
     public List<Film> getFilms() {
         return filmStorage.findAll();
+    }
+
+    public Film getFilmById(int id) {
+        return filmStorage.getFilmById(id);
     }
 
 
@@ -44,6 +49,21 @@ public class FilmService {
         return film;
     }
 
+    public List<Film> getPopularFilmsByLike(int count){
+        List<Film> films = new ArrayList<>(filmStorage.getFilms().values());
+        films.sort(Comparator
+                .comparingInt((film)-> film.getLikeUserIds().size()));
+        return films;
+    }
+    public void addLike(int filmId, int userId) {
+        Film film = filmStorage.getFilmById(filmId);
+        film.addLike(userId);
+    }
+
+    public void deleteLike(int filmId, int userId) {
+        Film film = filmStorage.getFilmById(filmId);
+        film.deleteLike(userId);
+    }
 
     public void clearFilms() {
         filmStorage.clear();

@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,6 +28,10 @@ public class UserService {
         return userStorage.findAll();
     }
 
+    public User getUserById(int id) {
+        return userStorage.getUserById(id);
+    }
+
     public User addUser(User user) {
         int id = generateId();
         user.setId(id);
@@ -42,7 +47,39 @@ public class UserService {
         return user;
     }
 
-    public void clearFilms() {
+    public List<User> getFriendsByUserId(int userId) {
+        User user = getUserById(userId);
+        return user.getFriendsIds().stream()
+                .map(friendId -> userStorage.getUserById(friendId))
+                .collect(Collectors.toList());
+
+    }
+
+    public List<User> getCommonFriends(int userId, int friendId) {
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
+
+        return user.getFriendsIds().stream()
+                .map(id -> userStorage.getUserById(id))
+                .filter(id -> friend.getFriendsIds().contains(id))
+                .collect(Collectors.toList());
+    }
+
+    public void putFriend(int userId, int friendId) {
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
+        user.addFriend(friendId);
+        friend.addFriend(userId);
+    }
+
+    public void deleteFriend(int userId, int friendId) {
+        User user = getUserById(userId);
+        User friend = getUserById(friendId);
+        user.deleteFriend(friendId);
+        friend.deleteFriend(userId);
+    }
+
+    public void clearUsers() {
         userStorage.clear();
         generatedId = 0;
     }
