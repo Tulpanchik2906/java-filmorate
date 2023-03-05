@@ -29,7 +29,11 @@ public class UserService {
     }
 
     public User getUserById(int id) {
-        return userStorage.getUserById(id);
+        User user = userStorage.getUserById(id);
+        if(user == null){
+            throw new NotFoundException("Пользователь с id " + id + " не найден");
+        }
+        return user;
     }
 
     public User addUser(User user) {
@@ -49,9 +53,7 @@ public class UserService {
 
     public List<User> getFriendsByUserId(int userId) {
         User user = getUserById(userId);
-        return user.getFriendsIds().stream()
-                .map(friendId -> userStorage.getUserById(friendId))
-                .collect(Collectors.toList());
+        return user.getFriendsIds().stream().map(friendId -> userStorage.getUserById(friendId)).collect(Collectors.toList());
 
     }
 
@@ -59,17 +61,22 @@ public class UserService {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
 
-        return user.getFriendsIds().stream()
-                .map(id -> userStorage.getUserById(id))
-                .filter(id -> friend.getFriendsIds().contains(id))
-                .collect(Collectors.toList());
+        return user.getFriendsIds().stream().filter(id -> friend.getFriendsIds().contains(id)).map(id -> userStorage.getUserById(id)).collect(Collectors.toList());
     }
 
     public void putFriend(int userId, int friendId) {
         User user = getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с userId " + userId + " не найден");
+        }
         User friend = getUserById(friendId);
+        if (friend == null) {
+            throw new NotFoundException("Пользователь с friendId " + friendId + " не найден");
+        }
         user.addFriend(friendId);
         friend.addFriend(userId);
+        userStorage.update(user);
+        userStorage.update(friend);
     }
 
     public void deleteFriend(int userId, int friendId) {
@@ -77,6 +84,8 @@ public class UserService {
         User friend = getUserById(friendId);
         user.deleteFriend(friendId);
         friend.deleteFriend(userId);
+        userStorage.update(user);
+        userStorage.update(friend);
     }
 
     public void clearUsers() {

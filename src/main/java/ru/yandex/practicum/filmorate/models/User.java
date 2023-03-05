@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.models;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 public class User {
@@ -24,7 +27,7 @@ public class User {
     @Past(message = "День рождение должно быть в прошлом.")
     private LocalDate birthday;
 
-    private Set<Integer> friendsIds;
+    private Set<Integer> friendsIds = new TreeSet<>();
 
     public void addFriend(int friendId){
         friendsIds.add(friendId);

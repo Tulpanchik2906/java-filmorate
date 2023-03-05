@@ -42,15 +42,34 @@ public class FilmController {
     }
 
     @PostMapping
-    public @ResponseBody Film addFilm(@Valid @RequestBody Film film) {
+    public Film addFilm(@Valid @RequestBody Film film) {
         return filmService.addFilm(film);
     }
 
     @PutMapping
-    public @ResponseBody Film updateFilm(@Valid @RequestBody Film film) {
+    public Film updateFilm(@Valid @RequestBody Film film) {
         return filmService.updateFilm(film);
     }
 
+    @PutMapping("/{id}/like/{userId}")
+    public void addLikeFilm(@PathVariable Integer id,
+                            @PathVariable Integer userId) {
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLikeFilm(@PathVariable Integer id,
+                            @PathVariable Integer userId) {
+        filmService.deleteLike(id, userId);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilm(@RequestParam(required = false) Integer count) {
+        if (count == null){
+            count = 10;
+        }
+        return filmService.getPopularFilmsByLike(count);
+    }
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<String> handleValidationException(ValidationException exception)

@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import ru.yandex.practicum.filmorate.models.User;
 
 import java.time.LocalDate;
@@ -211,6 +212,130 @@ public class UserControllerTest {
 
     }
 
+    @SneakyThrows
+    @Test
+    public void testAddFriend() {
+        User user = getAllFieldsUser();
+        int userId = addUser(user);
+        int friendId = addUser(user);
+
+        addFriend(userId, friendId);
+
+        // проверяем, что друзья добавились первому пользователю
+        String path = "/users/" + userId;
+        mockMvc.perform(get(path)
+                        .content(getJsonUser(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.friendsIds")
+                        .value(2));
+    }
+
+    @SneakyThrows
+    @Test
+    public void testDeleteFriend() {
+        User user = getAllFieldsUser();
+        int userId = addUser(user);
+        int friendId = addUser(user);
+
+        String path = "/users/" + userId + "/friends/" + friendId;
+
+        mockMvc.perform(delete(path)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        // проверяем, что друзья добавились первому пользователю
+        path = "/users/" + userId;
+        mockMvc.perform(get(path)
+                        .content(getJsonUser(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.friendsIds")
+                        .isEmpty());
+    }
+
+    @SneakyThrows
+    @Test
+    public void testGetListFriend() {
+        User user = getAllFieldsUser();
+        int userId = addUser(user);
+        int friendId = addUser(user);
+
+        addFriend(userId, friendId);
+
+        String path = "/users/" + userId + "/friends/";
+
+        String jsonExp = "[{\"id\":2,\"email\":\"user@yandex.ru\"," +
+                "\"login\":\"Login user\",\"name\":\"Name user\"," +
+                "\"birthday\":\"1998-10-15\",\"friendsIds\":[1]}]";
+
+        mockMvc.perform(get(path)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(result -> Assertions.assertEquals(jsonExp,
+                        result.getResponse().getContentAsString()));
+
+        // Проверка, что и у friend появился user в друзьях
+        path = "/users/" + friendId + "/friends/";
+
+        String jsonExp2 = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
+                "\"login\":\"Login user\",\"name\":\"Name user\"," +
+                "\"birthday\":\"1998-10-15\",\"friendsIds\":[2]}]";
+
+        mockMvc.perform(get(path)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(result -> Assertions.assertEquals(jsonExp2,
+                        result.getResponse().getContentAsString()));
+    }
+
+    @SneakyThrows
+    @Test
+    public void testGetCommonListFriend() {
+        User user = getAllFieldsUser();
+        int userId = addUser(user);
+        int friendId = addUser(user);
+        int friendId2 = addUser(user);
+
+        addFriend(userId, friendId);
+        addFriend(userId, friendId2);
+
+        String path = "/users/" + friendId + "/friends/common/" + friendId2;
+
+        String jsonExp = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
+                "\"login\":\"Login user\"," +
+                "\"name\":\"Name user\",\"birthday\":\"1998-10-15\"," +
+                "\"friendsIds\":[2,3]}]";
+
+        mockMvc.perform(get(path)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(result -> Assertions.assertEquals(jsonExp,
+                        result.getResponse().getContentAsString()));
+    }
+
+    @SneakyThrows
+    @Test
+    public void testGetCommonEmptyListFriend() {
+        User user = getAllFieldsUser();
+        int userId = addUser(user);
+        int friendId = addUser(user);
+        int friendId2 = addUser(user);
+
+        addFriend(userId, friendId);
+        addFriend(userId, friendId2);
+
+        String path = "/users/" + friendId + "/friends/common/" + userId;
+        String jsonExp = "[]";
+
+        mockMvc.perform(get(path)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(result -> Assertions.assertEquals(jsonExp,
+                        result.getResponse().getContentAsString()));
+    }
+
+
     private User getAllFieldsUser() {
         User user = new User();
         user.setId(1);
@@ -236,5 +361,25 @@ public class UserControllerTest {
                                 .contains(errorText))
                 )
                 .andExpect(status().is4xxClientError());
+    }
+
+    private int addUser(User user) throws Exception {
+        MvcResult res = mockMvc.perform(post("/users")
+                        .content(getJsonUser(user))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+        User resUser = objectMapper
+                .readValue(res.getResponse().getContentAsString(),
+                        User.class);
+        return resUser.getId();
+    }
+
+    private void addFriend(int userId, int friendId) throws Exception {
+        String path = "/users/" + userId + "/friends/" + friendId;
+
+        mockMvc.perform(put(path)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 }

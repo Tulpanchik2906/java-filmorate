@@ -48,10 +48,27 @@ public class UserController {
         return userService.updateUser(user);
     }
 
+    @GetMapping("/{id}/friends")
+    public List<User> getFriendList(@PathVariable Integer id){
+       return userService.getFriendsByUserId(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriendList(@PathVariable Integer id,
+                                          @PathVariable Integer otherId){
+        return userService.getCommonFriends(id,otherId);
+    }
+
     @PutMapping("/{id}/friends/{friendId}")
     public void putFriend(@PathVariable Integer id, @PathVariable Integer friendId){
         userService.putFriend(id,friendId);
     }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable Integer id, @PathVariable Integer friendId){
+        userService.deleteFriend(id,friendId);
+    }
+
 
     public void clearFilms() {
         userService.clearUsers();
@@ -65,6 +82,5 @@ public class UserController {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(objectMapper.writeValueAsString(exception));
     }
-
 }
 
