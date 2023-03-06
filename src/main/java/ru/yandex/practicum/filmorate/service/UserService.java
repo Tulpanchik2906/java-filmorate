@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
 
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
 
     private int generatedId = 0;
 
@@ -41,6 +41,7 @@ public class UserService {
         user.setId(id);
         user.setName(getUserName(user));
         userStorage.add(user);
+        log.info("Успешно добавлен пользователь с id = {}", user.getId());
         return user;
     }
 
@@ -48,6 +49,7 @@ public class UserService {
         checkExistUserForUpdateUser(user);
         user.setName(getUserName(user));
         userStorage.update(user);
+        log.info("Успешно изменены данные пользователя с id = {}", user.getId());
         return user;
     }
 
@@ -77,6 +79,9 @@ public class UserService {
         friend.addFriend(userId);
         userStorage.update(user);
         userStorage.update(friend);
+
+        log.info("Успешно добавлены в друзья польязователи с id = {} и с id = {}",
+                user.getId(), friend.getId());
     }
 
     public void deleteFriend(int userId, int friendId) {
@@ -86,11 +91,16 @@ public class UserService {
         friend.deleteFriend(userId);
         userStorage.update(user);
         userStorage.update(friend);
+
+        log.info("Успешно удалены из друзьей польязователи с id = {} и с id = {}",
+                user.getId(), friend.getId());
     }
 
     public void clearUsers() {
         userStorage.clear();
         generatedId = 0;
+
+        log.info("Список пользователь пуст");
     }
 
     private void checkExistUserForUpdateUser(User user) {

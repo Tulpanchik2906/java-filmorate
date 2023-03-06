@@ -19,13 +19,11 @@ import java.util.List;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private UserService userService;
-    private ObjectMapper objectMapper;
+    private final UserService userService;
 
     @Autowired
-    public UserController(UserService userService, ObjectMapper objectMapper){
+    public UserController(UserService userService){
         this.userService = userService;
-        this.objectMapper = objectMapper;
     }
     
     @GetMapping
@@ -74,13 +72,5 @@ public class UserController {
         userService.clearUsers();
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handleNotFoundException(NotFoundException exception)
-            throws JsonProcessingException {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(objectMapper.writeValueAsString(exception));
-    }
 }
 

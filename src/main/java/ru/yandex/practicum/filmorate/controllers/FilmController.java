@@ -1,15 +1,8 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.models.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -21,13 +14,10 @@ import java.util.List;
 @Slf4j
 public class FilmController {
 
-    private ObjectMapper objectMapper;
-
-    private FilmService filmService;
+    private final FilmService filmService;
 
     @Autowired
-    public FilmController(ObjectMapper objectMapper, FilmService filmService) {
-        this.objectMapper = objectMapper;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
@@ -59,35 +49,16 @@ public class FilmController {
 
     @DeleteMapping("/{id}/like/{userId}")
     public void deleteLikeFilm(@PathVariable Integer id,
-                            @PathVariable Integer userId) {
+                               @PathVariable Integer userId) {
         filmService.deleteLike(id, userId);
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopularFilm(@RequestParam(required = false) Integer count) {
-        if (count == null){
-            count = 10;
-        }
+    public List<Film> getPopularFilm(
+            @RequestParam(required = false, defaultValue = "10") Integer count) {
         return filmService.getPopularFilmsByLike(count);
     }
 
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String> handleValidationException(ValidationException exception)
-            throws JsonProcessingException {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(objectMapper.writeValueAsString(exception));
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handleNotFoundException(NotFoundException exception)
-            throws JsonProcessingException {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(objectMapper.writeValueAsString(exception));
-    }
 
     public void clearFilms() {
         filmService.clearFilms();

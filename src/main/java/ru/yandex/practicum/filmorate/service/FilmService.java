@@ -16,9 +16,9 @@ import java.util.*;
 @Service
 @Slf4j
 public class FilmService {
-    private FilmStorage filmStorage;
+    private final FilmStorage filmStorage;
 
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
 
     private int generatedId = 0;
 
@@ -49,6 +49,7 @@ public class FilmService {
         int id = generateId();
         film.setId(id);
         filmStorage.add(film);
+        log.info("Фильм с id = {} успешно добавлен", id);
         return film;
     }
 
@@ -56,6 +57,7 @@ public class FilmService {
         checkExistIdForUpdate(film);
         checkDateFilm(film);
         filmStorage.update(film);
+        log.info("Фильм с id = {} успешно обновлен", film.getId());
         return film;
     }
 
@@ -85,6 +87,9 @@ public class FilmService {
             throw new NotFoundException("Пользователь " + filmId + " не найден");
         }
         film.addLike(userId);
+        log.info("К фильму с id = {} успешно добавлен лайк " +
+                        "от пользователя с id = {}",
+                film.getId(), user.getId());
     }
 
     public void deleteLike(int filmId, int userId) {
@@ -99,11 +104,17 @@ public class FilmService {
         }
 
         film.deleteLike(userId);
+
+        log.info("К фильму с id = {} успешно удален лайк " +
+                        "от пользователя с id = {}",
+                film.getId(), user.getId());
     }
 
     public void clearFilms() {
         filmStorage.clear();
         generatedId = 0;
+
+        log.info("Список фильмов пуст");
     }
 
 
