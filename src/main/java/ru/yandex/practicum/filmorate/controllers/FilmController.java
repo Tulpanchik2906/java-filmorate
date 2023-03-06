@@ -1,101 +1,67 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.models.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final FilmService filmService;
 
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int generatedId = 0;
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public List<Film> getFilms() {
-        return new ArrayList<>(films.values());
+        return filmService.getFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable Integer id) {
+        return filmService.getFilmById(id);
     }
 
     @PostMapping
-    public @ResponseBody Film addFilm(@Valid @RequestBody Film film) {
-        checkDateFilm(film);
-        int id =  generateId();
-        film.setId(id);
-        films.put(film.getId(), film);
-        return film;
+    public Film addFilm(@Valid @RequestBody Film film) {
+        return filmService.addFilm(film);
     }
 
     @PutMapping
-    public @ResponseBody Film updateFilm(@Valid @RequestBody Film film) {
-        checkExistIdForUpdate(film);
-        checkDateFilm(film);
-        films.put(film.getId(), film);
-        return film;
+    public Film updateFilm(@Valid @RequestBody Film film) {
+        return filmService.updateFilm(film);
     }
 
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<String> handleValidationException(ValidationException exception)
-            throws JsonProcessingException {
-        return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(objectMapper.writeValueAsString(exception));
+    @PutMapping("/{id}/like/{userId}")
+    public void addLikeFilm(@PathVariable Integer id,
+                            @PathVariable Integer userId) {
+        filmService.addLike(id, userId);
     }
 
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<String> handleNotFoundException(NotFoundException exception)
-            throws JsonProcessingException {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(objectMapper.writeValueAsString(exception));
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLikeFilm(@PathVariable Integer id,
+                               @PathVariable Integer userId) {
+        filmService.deleteLike(id, userId);
     }
+
+    @GetMapping("/popular")
+    public List<Film> getPopularFilm(
+            @RequestParam(required = false, defaultValue = "10") Integer count) {
+        return filmService.getPopularFilmsByLike(count);
+    }
+
 
     public void clearFilms() {
-        films.clear();
-        generatedId = 0;
+        filmService.clearFilms();
     }
 
-
-    private void checkDateFilm(Film film) {
-        if (film.getReleaseDate() == null) {
-            return;
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
-            log.error("Кино тогда еще не родилось.");
-            throw new ValidationException("Кино тогда еще не родилось.");
-        }
-
-    }
-
-    private void checkExistIdForUpdate(Film film) {
-        if (!films.containsKey(film.getId())) {
-            log.error("Фильм с id " + film.getId() + " не существует.");
-            throw new NotFoundException("Фильм с id " + film.getId() + " не существует.");
-        }
-    }
-
-    private int generateId(){
-        generatedId++;
-        return generatedId;
-    }
 }
