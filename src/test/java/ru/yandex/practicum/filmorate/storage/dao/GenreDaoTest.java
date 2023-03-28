@@ -20,20 +20,20 @@ public class GenreDaoTest {
     private final GenreStorage genreStorage;
 
     @Test
-    public void testGetGenreByIdExistId(){
+    public void testGetGenreByIdExistId() {
         Genre genre = genreStorage.getGenreById(1);
-        Assertions.assertEquals(genre.getId(),1);
+        Assertions.assertEquals(genre.getId(), 1);
         Assertions.assertEquals("Комедия", genre.getName());
     }
 
     @Test
-    public void testGetGenreByIdNoExistId(){
+    public void testGetGenreByIdNoExistId() {
         Genre genre = genreStorage.getGenreById(100);
         Assertions.assertNull(genre);
     }
 
     @Test
-    public void testFindALL(){
+    public void testFindALL() {
         List<Genre> genres = genreStorage.findAll();
         Assertions.assertEquals(6, genres.size());
     }

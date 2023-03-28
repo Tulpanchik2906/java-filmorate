@@ -20,10 +20,10 @@ public class GenreDao implements GenreStorage {
     }
 
     public Genre getGenreById(int id) {
-        List<Genre> genres =  jdbcTemplate.query("SELECT id, name FROM GENRE " +
+        List<Genre> genres = jdbcTemplate.query("SELECT id, name FROM GENRE " +
                         "WHERE ID = ?",
                 new BeanPropertyRowMapper<Genre>(Genre.class), id);
-        if (genres.isEmpty()){
+        if (genres.isEmpty()) {
             return null;
         }
         return genres.get(0);

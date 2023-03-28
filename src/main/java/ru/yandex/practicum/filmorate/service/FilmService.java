@@ -12,7 +12,10 @@ import ru.yandex.practicum.filmorate.storage.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -69,8 +72,8 @@ public class FilmService {
                 .comparingInt((film) -> film.getLikeUserIds().size()));
         Collections.reverse(films);
         List res = new ArrayList();
-        for (int i =0;i<films.size();i++){
-            if(i<count){
+        for (int i = 0; i < films.size(); i++) {
+            if (i < count) {
                 res.add(films.get(i));
             }
         }

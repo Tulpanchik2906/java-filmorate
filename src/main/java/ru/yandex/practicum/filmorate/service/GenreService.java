@@ -20,8 +20,8 @@ public class GenreService {
 
     public Genre getGenreById(int id) {
         Genre genre = genreStorage.getGenreById(id);
-        if(genre == null){
-            throw new NotFoundException("Жанр с id " + id +" не найден");
+        if (genre == null) {
+            throw new NotFoundException("Жанр с id " + id + " не найден");
         }
         return genre;
     }

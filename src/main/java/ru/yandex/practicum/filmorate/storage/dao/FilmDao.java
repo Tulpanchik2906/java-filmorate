@@ -130,8 +130,13 @@ public class FilmDao implements FilmStorage {
 
     @Override
     public int getLastFilmId() {
-        return jdbcTemplate.queryForObject("SELECT ID FROM FILMS " +
+        List<Integer> list = jdbcTemplate.queryForList("SELECT ID FROM FILMS " +
                 "ORDER BY ID DESC LIMIT 1", Integer.class);
+        if(list.isEmpty()){
+            return -1;
+        }else {
+            return list.get(0);
+        }
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {

@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage.storage;
 import ru.yandex.practicum.filmorate.models.Film;
 
 import java.util.List;
-import java.util.Map;
 
 public interface FilmStorage {
 

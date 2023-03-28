@@ -19,8 +19,8 @@ public class RatingMpaService {
 
     public RatingMpa getRatingMpaById(int id) {
         RatingMpa ratingMpa = ratingMpaStorage.getRatingMpaById(id);
-        if(ratingMpa == null){
-            throw new NotFoundException("rating_mpa c id " + id +" не найден");
+        if (ratingMpa == null) {
+            throw new NotFoundException("rating_mpa c id " + id + " не найден");
         }
         return ratingMpa;
     }

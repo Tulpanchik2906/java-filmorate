@@ -31,8 +31,8 @@ public class UserDao implements UserStorage {
                 user.getEmail(),
                 user.getBirthday());
         // Добавить друзей
-        if(user.getFriendsIds() != null && !user.getFriendsIds().isEmpty()){
-            for(int friendId : user.getFriendsIds()){
+        if (user.getFriendsIds() != null && !user.getFriendsIds().isEmpty()) {
+            for (int friendId : user.getFriendsIds()) {
                 addFriend(user.getId(), friendId);
             }
         }
@@ -78,12 +78,17 @@ public class UserDao implements UserStorage {
 
     @Override
     public int getLastUserId() {
-        return jdbcTemplate.queryForObject("SELECT ID FROM USERS " +
+        List<Integer> list = jdbcTemplate.queryForList("SELECT ID FROM USERS " +
                 "ORDER BY ID DESC LIMIT 1", Integer.class);
+        if(list.isEmpty()){
+            return -1;
+        }else {
+            return list.get(0);
+        }
     }
 
     public void addFriend(int initiatorId, int acceptorId) {
-        if (isFriend(initiatorId, acceptorId) == true) {
+        if (isFriend(initiatorId, acceptorId)) {
             jdbcTemplate.update(
                     "UPDATE FRIENDSHIP SET status = true" +
                             "WHERE initiator_id = ? AND acceptor_id = ? ",
@@ -99,19 +104,19 @@ public class UserDao implements UserStorage {
     @Override
     public void deleteFriend(int initiatorId, int acceptorId) {
         jdbcTemplate.update("DELETE FROM FRIENDSHIP " +
-                "WHERE (initiator_id = ? AND acceptor_id = ?) OR " +
-                "(initiator_id = ? AND acceptor_id = ?)",
+                        "WHERE (initiator_id = ? AND acceptor_id = ?) OR " +
+                        "(initiator_id = ? AND acceptor_id = ?)",
                 initiatorId, acceptorId, acceptorId, initiatorId);
     }
 
-    public List<Integer> getFriendsByUserId(int userId){
+    public List<Integer> getFriendsByUserId(int userId) {
         return jdbcTemplate.queryForList("SELECT ACCEPTOR_ID\n" +
-                "FROM FRIENDSHIP\n" +
-                "WHERE INITIATOR_ID = ?\n" +
-                "UNION\n" +
-                "SELECT INITIATOR_ID\n" +
-                "FROM FRIENDSHIP\n" +
-                "WHERE STATUS = TRUE AND ACCEPTOR_ID = ?", Integer.class,
+                        "FROM FRIENDSHIP\n" +
+                        "WHERE INITIATOR_ID = ?\n" +
+                        "UNION\n" +
+                        "SELECT INITIATOR_ID\n" +
+                        "FROM FRIENDSHIP\n" +
+                        "WHERE STATUS = TRUE AND ACCEPTOR_ID = ?", Integer.class,
                 userId, userId);
     }
 
@@ -121,11 +126,7 @@ public class UserDao implements UserStorage {
                 "SELECT * FROM FRIENDSHIP\n" +
                         "WHERE INITIATOR_ID = ? AND ACCEPTOR_ID  = ? \n",
                 (rs, rowNum) -> true, acceptorId, initiatorId);
-        if (status.size() == 1) {
-            return true;
-        } else {
-            return false;
-        }
+        return status.size() == 1;
     }
 
     private User makeUser(ResultSet rs) throws SQLException {
