@@ -80,9 +80,9 @@ public class UserDao implements UserStorage {
     public int getLastUserId() {
         List<Integer> list = jdbcTemplate.queryForList("SELECT ID FROM USERS " +
                 "ORDER BY ID DESC LIMIT 1", Integer.class);
-        if(list.isEmpty()){
+        if (list.isEmpty()) {
             return -1;
-        }else {
+        } else {
             return list.get(0);
         }
     }

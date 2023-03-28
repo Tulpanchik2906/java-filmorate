@@ -132,9 +132,9 @@ public class FilmDao implements FilmStorage {
     public int getLastFilmId() {
         List<Integer> list = jdbcTemplate.queryForList("SELECT ID FROM FILMS " +
                 "ORDER BY ID DESC LIMIT 1", Integer.class);
-        if(list.isEmpty()){
+        if (list.isEmpty()) {
             return -1;
-        }else {
+        } else {
             return list.get(0);
         }
     }
