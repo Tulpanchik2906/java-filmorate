@@ -2,10 +2,11 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.models.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,7 +20,7 @@ public class UserService {
     private int generatedId = 0;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("UserDbStorage") UserStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -75,10 +76,7 @@ public class UserService {
         if (friend == null) {
             throw new NotFoundException("Пользователь с friendId " + friendId + " не найден");
         }
-        user.addFriend(friendId);
-        friend.addFriend(userId);
-        userStorage.update(user);
-        userStorage.update(friend);
+        userStorage.addFriend(userId, friendId);
 
         log.info("Успешно добавлены в друзья польязователи с id = {} и с id = {}",
                 user.getId(), friend.getId());
@@ -86,11 +84,15 @@ public class UserService {
 
     public void deleteFriend(int userId, int friendId) {
         User user = getUserById(userId);
+        if (user == null) {
+            throw new NotFoundException("Пользователь с userId " + userId + " не найден");
+        }
         User friend = getUserById(friendId);
-        user.deleteFriend(friendId);
-        friend.deleteFriend(userId);
-        userStorage.update(user);
-        userStorage.update(friend);
+        if (friend == null) {
+            throw new NotFoundException("Пользователь с friendId " + friendId + " не найден");
+        }
+
+        userStorage.deleteFriend(userId, friendId);
 
         log.info("Успешно удалены из друзьей польязователи с id = {} и с id = {}",
                 user.getId(), friend.getId());
@@ -104,7 +106,7 @@ public class UserService {
     }
 
     private void checkExistUserForUpdateUser(User user) {
-        if (!userStorage.getUsers().containsKey(user.getId())) {
+        if (userStorage.getUserById(user.getId()) == null) {
             log.error("Пользователь с id " + user.getId() + " не существует.");
             throw new NotFoundException("Пользователь с id " + user.getId() + " не существует.");
         }

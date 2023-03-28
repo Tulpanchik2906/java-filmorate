@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.constraints.*;
@@ -10,6 +11,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @Data
+@EqualsAndHashCode(of = "id")
 public class User {
 
     private int id;
