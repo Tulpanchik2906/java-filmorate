@@ -141,6 +141,10 @@ public class FilmService {
     }
 
     private int generateId() {
+        generatedId = filmStorage.getLastFilmId();
+        if (generatedId == -1) {
+            generatedId = 0;
+        }
         generatedId++;
         return generatedId;
     }

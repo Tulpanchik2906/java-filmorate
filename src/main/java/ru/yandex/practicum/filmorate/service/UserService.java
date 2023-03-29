@@ -121,6 +121,10 @@ public class UserService {
     }
 
     private int generateId() {
+        generatedId = userStorage.getLastUserId();
+        if (generatedId == -1) {
+            generatedId = 0;
+        }
         generatedId++;
         return generatedId;
     }
