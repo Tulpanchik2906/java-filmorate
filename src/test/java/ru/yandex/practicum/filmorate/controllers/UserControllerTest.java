@@ -269,7 +269,7 @@ public class UserControllerTest {
 
         String jsonExp = "[{\"id\":2,\"email\":\"user@yandex.ru\"," +
                 "\"login\":\"Login user\",\"name\":\"Name user\"," +
-                "\"birthday\":\"1998-10-15\",\"friendsIds\":[1]}]";
+                "\"birthday\":\"1998-10-15\",\"friendsIds\":[]}]";
 
         mockMvc.perform(get(path)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -277,38 +277,25 @@ public class UserControllerTest {
                 .andExpect(result -> Assertions.assertEquals(jsonExp,
                         result.getResponse().getContentAsString()));
 
-        // Проверка, что и у friend появился user в друзьях
-        path = "/users/" + friendId + "/friends/";
-
-        String jsonExp2 = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
-                "\"login\":\"Login user\",\"name\":\"Name user\"," +
-                "\"birthday\":\"1998-10-15\",\"friendsIds\":[2]}]";
-
-        mockMvc.perform(get(path)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(result -> Assertions.assertEquals(jsonExp2,
-                        result.getResponse().getContentAsString()));
     }
 
     @SneakyThrows
     @Test
-    @Ignore
     public void testGetCommonListFriend() {
         User user = getAllFieldsUser();
         int userId = addUser(user);
         int friendId = addUser(user);
         int friendId2 = addUser(user);
 
-        addFriend(userId, friendId);
-        addFriend(userId, friendId2);
+        addFriend(friendId, userId);
+        addFriend(friendId2, userId);
 
         String path = "/users/" + friendId + "/friends/common/" + friendId2;
 
         String jsonExp = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
                 "\"login\":\"Login user\"," +
                 "\"name\":\"Name user\",\"birthday\":\"1998-10-15\"," +
-                "\"friendsIds\":[2,3]}]";
+                "\"friendsIds\":[]}]";
 
         mockMvc.perform(get(path)
                         .contentType(MediaType.APPLICATION_JSON))
