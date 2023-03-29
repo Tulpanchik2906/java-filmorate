@@ -60,19 +60,25 @@ CREATE TABLE IF NOT EXISTS film_genre (
 );
 
 -- Справочник жанров
-INSERT INTO GENRE (name) VALUES ('Комедия');
-INSERT INTO GENRE (name) VALUES ('Драма');
-INSERT INTO GENRE (name) VALUES ('Мультфильм');
-INSERT INTO GENRE (name) VALUES ('Триллер');
-INSERT INTO GENRE (name) VALUES ('Документальный');
-INSERT INTO GENRE (name) VALUES ('Боевик');
+insert into GENRE
+    select * from (
+        select 1, 'Комедия' union
+        select 2, 'Драма' union
+        select 3, 'Мультфильм' union
+        select 4, 'Триллер' union
+        select 5, 'Документальный' union
+        select 6, 'Боевик'
+    ) GENRE where not exists(select * from GENRE);
 
 -- Справочник Рейтинг MPA
-INSERT INTO rating_mpa (name, description) VALUES ('G', 'у фильма нет возрастных ограничений');
-INSERT INTO rating_mpa (name, description) VALUES ('PG', 'детям рекомендуется смотреть фильм с родителями');
-INSERT INTO rating_mpa (name, description) VALUES ('PG-13', 'детям до 13 лет просмотр не желателен');
-INSERT INTO rating_mpa (name, description) VALUES ('R', 'лицам до 17 лет просматривать фильм можно только в присутствии взрослого');
-INSERT INTO rating_mpa (name, description) VALUES ('NC-17', 'лицам до 18 лет просмотр запрещён');
+insert into rating_mpa
+    select * from (
+        select 1, 'G', 'у фильма нет возрастных ограничений' union
+        select 2, 'PG', 'детям рекомендуется смотреть фильм с родителями' union
+        select 3, 'PG-13', 'детям до 13 лет просмотр не желателен' union
+        select 4, 'R', 'лицам до 17 лет просматривать фильм можно только в присутствии взрослого' union
+        select 5, 'NC-17', 'лицам до 18 лет просмотр запрещён'
+    ) rating_mpa where not exists(select * from rating_mpa);
 
 SELECT * FROM rating_mpa;
 COMMIT;
