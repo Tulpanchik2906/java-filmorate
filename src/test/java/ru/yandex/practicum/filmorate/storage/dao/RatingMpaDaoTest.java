@@ -22,22 +22,22 @@ public class RatingMpaDaoTest {
     @Test
     public void testGetGenreByIdExistId() {
         RatingMpa ratingMpa = ratingMpaStorage.getRatingMpaById(1);
+
         Assertions.assertEquals(ratingMpa.getId(), 1);
-        Assertions.assertEquals(ratingMpa.getName(), "Комедия");
+        Assertions.assertEquals("G", ratingMpa.getName());
+        Assertions.assertEquals("у фильма нет возрастных ограничений", ratingMpa.getDescription());
     }
 
     @Test
     public void testGetGenreByIdNoExistId() {
         RatingMpa ratingMpa = ratingMpaStorage.getRatingMpaById(100);
         Assertions.assertNull(ratingMpa);
-        Assertions.assertEquals("G", ratingMpa.getName());
-        Assertions.assertEquals("у фильма нет возрастных ограничений", ratingMpa.getDescription());
     }
 
     @Test
     public void testFindALL() {
         List<RatingMpa> all = ratingMpaStorage.findAll();
-        Assertions.assertEquals(6, all.size());
+        Assertions.assertEquals(5, all.size());
     }
 
 }

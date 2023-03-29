@@ -61,7 +61,7 @@ public class UserController {
         userService.deleteFriend(id, friendId);
     }
 
-    public void clearFilms() {
+    public void clearUsers() {
         userService.clearUsers();
     }
 

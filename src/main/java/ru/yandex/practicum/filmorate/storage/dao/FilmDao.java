@@ -45,13 +45,16 @@ public class FilmDao implements FilmStorage {
             jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
                     "WHERE id = ?", film.getMpa().getId(), film.getId());
         }
-        // Добавить список лайков
+
+        /*
+        //Добавить лайки
         if (film.getLikeUserIds() != null && !film.getLikeUserIds().isEmpty()) {
             for (Integer userId : film.getLikeUserIds()) {
-                jdbcTemplate.update("INSERT INTO LIKES (film_id, user_id)\n" +
-                        "VALUES (?, ?)", film.getId(), userId);
+                addLike(film.getId(), userId);
+
             }
         }
+         */
     }
 
 
@@ -76,18 +79,24 @@ public class FilmDao implements FilmStorage {
             }
         }
 
-        jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
-                "WHERE id = ?", film.getMpa().getId(), film.getId());
+        if (film.getMpa() != null) {
+            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
+                    "WHERE id = ?", film.getMpa().getId(), film.getId());
+        } else {
+            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = NULL " +
+                    "WHERE id = ?", film.getId());
+        }
         // Добавить список лайков
         // Но сначала удалить все лайки
+        /*
         jdbcTemplate.update("DELETE FROM LIKES WHERE FILM_ID = ?",
                 film.getId());
         if (film.getLikeUserIds() != null && !film.getLikeUserIds().isEmpty()) {
             for (Integer userId : film.getLikeUserIds()) {
-                jdbcTemplate.update("INSERT INTO LIKES (film_id, user_id)\n" +
-                        "VALUES (?, ?) ", film.getId(), userId);
+                addLike(film.getId(), userId);
             }
         }
+         */
     }
 
     @Override

@@ -37,7 +37,7 @@ public class FilmControllerTest {
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @BeforeEach
-    public void beforeEach() {
+    public void afterEach() {
         filmController.clearFilms();
     }
 
@@ -63,8 +63,7 @@ public class FilmControllerTest {
 
         String jsonFilmList = "[{\"id\":1,\"name\":\"Титаник\"," +
                 "\"description\":\"Фильм о любви и затонувшем корабле.\"," +
-                "\"releaseDate\":\"1997-12-19\",\"duration\":194," +
-                "\"likeUserIds\":[]}]";
+                "\"releaseDate\":\"1997-12-19\",\"duration\":194,\"genres\":[],\"mpa\":null,\"likeUserIds\":[]}]";
         mockMvc.perform(get("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))

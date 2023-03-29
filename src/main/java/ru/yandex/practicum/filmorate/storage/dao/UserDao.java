@@ -90,7 +90,7 @@ public class UserDao implements UserStorage {
     public void addFriend(int initiatorId, int acceptorId) {
         if (isFriend(initiatorId, acceptorId)) {
             jdbcTemplate.update(
-                    "UPDATE FRIENDSHIP SET status = true" +
+                    "UPDATE FRIENDSHIP SET status = true " +
                             "WHERE initiator_id = ? AND acceptor_id = ? ",
                     acceptorId, initiatorId);
         } else {

@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS films (
         duration integer,
         rating_mpa_id integer,
         CONSTRAINT fk_rating_mpa FOREIGN KEY(rating_mpa_id)
-		  REFERENCES rating_mpa(id)
+		  REFERENCES rating_mpa(id) ON DELETE RESTRICT
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS likes (
     user_id INTEGER,
     film_id INTEGER,
     CONSTRAINT fk_user FOREIGN KEY(user_id)
-		  REFERENCES users(id),
+		  REFERENCES users(id) ON DELETE CASCADE,
 	CONSTRAINT fk_film FOREIGN KEY(user_id)
-		  REFERENCES films(id),
+		  REFERENCES films(id) ON DELETE CASCADE,
 	PRIMARY KEY (user_id, film_id)
 );
 
@@ -43,9 +43,9 @@ CREATE TABLE IF NOT EXISTS friendship (
     acceptor_id INTEGER,
 	status boolean,
 	CONSTRAINT fk_user_initiator FOREIGN KEY(initiator_id)
-		  REFERENCES users(id),
+		  REFERENCES users(id) ON DELETE CASCADE,
 	CONSTRAINT fk_user_acceptor FOREIGN KEY(acceptor_id)
-		  REFERENCES users(id),
+		  REFERENCES users(id) ON DELETE CASCADE,
 	PRIMARY KEY (initiator_id,  acceptor_id)
 );
 
@@ -53,9 +53,9 @@ CREATE TABLE IF NOT EXISTS film_genre (
     genre_id INTEGER,
     film_id INTEGER,
     CONSTRAINT fk_genre FOREIGN KEY(genre_id)
-		  REFERENCES genre(id),
+		  REFERENCES genre(id) ON DELETE CASCADE,
 	CONSTRAINT fk_film_g FOREIGN KEY(film_id)
-		  REFERENCES films(id),
+		  REFERENCES films(id) ON DELETE CASCADE,
 	PRIMARY KEY (genre_id, film_id)
 );
 

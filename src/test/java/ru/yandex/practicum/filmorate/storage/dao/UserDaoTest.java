@@ -15,11 +15,11 @@ import java.time.LocalDate;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserDaoTest {
 
+    @Autowired
     @Qualifier("UserDbStorage")
-    private final UserStorage userStorage;
+    private UserStorage userStorage;
 
     @AfterEach
     public void afterEach() {
@@ -61,8 +61,10 @@ public class UserDaoTest {
 
         userStorage.addFriend(user.getId(), friend.getId());
 
-        Assertions.assertEquals(1, user.getFriendsIds().size());
-        Assertions.assertTrue(user.getFriendsIds().contains(friend.getId()));
+        User saveUser = userStorage.getUserById(user.getId());
+
+        Assertions.assertEquals(1, saveUser.getFriendsIds().size());
+        Assertions.assertTrue(saveUser.getFriendsIds().contains(friend.getId()));
 
     }
 
@@ -78,8 +80,10 @@ public class UserDaoTest {
         userStorage.addFriend(user.getId(), friend.getId());
         userStorage.addFriend(friend.getId(), user.getId());
 
-        Assertions.assertEquals(1, friend.getFriendsIds().size());
-        Assertions.assertTrue(friend.getFriendsIds().contains(user.getId()));
+        User saveFriend = userStorage.getUserById(friend.getId());
+
+        Assertions.assertEquals(1, saveFriend.getFriendsIds().size());
+        Assertions.assertTrue(saveFriend.getFriendsIds().contains(user.getId()));
 
     }
 
@@ -95,11 +99,13 @@ public class UserDaoTest {
         userStorage.addFriend(user.getId(), friend.getId());
         userStorage.deleteFriend(user.getId(), friend.getId());
 
-        Assertions.assertEquals(0, user.getFriendsIds().size());
+        User saveUser = userStorage.getUserById(user.getId());
+
+        Assertions.assertEquals(0, saveUser.getFriendsIds().size());
     }
 
     @Test
-    public void deleteFriendCrossLinkTest() {
+    public void deleteInitiatorFriendCrossLinkTest() {
         User user = getAllFieldsUser();
         User friend = getAllFieldsUser();
         friend.setId(user.getId() + 1);
@@ -110,7 +116,37 @@ public class UserDaoTest {
         userStorage.addFriend(user.getId(), friend.getId());
         userStorage.addFriend(friend.getId(), user.getId());
 
-        Assertions.assertEquals(0, friend.getFriendsIds().size());
+        userStorage.deleteFriend(user.getId(), friend.getId());
+
+        User saveUser = userStorage.getUserById(user.getId());
+        User saveFriend = userStorage.getUserById(friend.getId());
+
+
+        Assertions.assertEquals(0, saveUser.getFriendsIds().size());
+        Assertions.assertEquals(0, saveFriend.getFriendsIds().size());
+
+    }
+
+    @Test
+    public void deleteAcceptorFriendCrossLinkTest() {
+        User user = getAllFieldsUser();
+        User friend = getAllFieldsUser();
+        friend.setId(user.getId() + 1);
+
+        userStorage.add(user);
+        userStorage.add(friend);
+
+        userStorage.addFriend(user.getId(), friend.getId());
+        userStorage.addFriend(friend.getId(), user.getId());
+
+        userStorage.deleteFriend(friend.getId(), user.getId());
+
+        User saveUser = userStorage.getUserById(user.getId());
+        User saveFriend = userStorage.getUserById(friend.getId());
+
+
+        Assertions.assertEquals(0, saveUser.getFriendsIds().size());
+        Assertions.assertEquals(0, saveFriend.getFriendsIds().size());
 
     }
 
@@ -153,10 +189,14 @@ public class UserDaoTest {
         User user = getAllFieldsUser();
         userStorage.add(user);
 
-        user.setId(2);
+        user.setId(user.getId() + 1);
         userStorage.add(user);
 
-        Assertions.assertEquals(2, userStorage.findAll().size());
+        userStorage.addFriend(user.getId(), user.getId() - 1);
+
+        userStorage.clear();
+
+        Assertions.assertEquals(0, userStorage.findAll().size());
     }
 
     @Test

@@ -24,14 +24,15 @@ import java.util.TreeSet;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmDaoTest {
 
+    @Autowired
     @Qualifier("FilmDbStorage")
-    private final FilmStorage filmStorage;
+    private FilmStorage filmStorage;
 
+    @Autowired
     @Qualifier("UserDbStorage")
-    private final UserStorage userStorage;
+    private UserStorage userStorage;
 
     @AfterEach
     public void afterEach() {
@@ -127,7 +128,7 @@ public class FilmDaoTest {
         Film saveFilm = filmStorage.getFilmById(film.getId());
 
         Assertions.assertEquals(1, saveFilm.getLikeUserIds().size());
-        Assertions.assertTrue(saveFilm.getLikeUserIds().contains(list.get(0)));
+        Assertions.assertTrue(saveFilm.getLikeUserIds().contains(list.get(0).getId()));
     }
 
     @Test
@@ -146,7 +147,7 @@ public class FilmDaoTest {
     }
 
     @Test
-    public void get() {
+    public void getLastFilmIdTest() {
         Film film = getAllFieldsFilm();
         filmStorage.add(film);
         film.setId(2);
