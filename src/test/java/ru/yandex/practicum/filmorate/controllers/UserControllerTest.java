@@ -257,7 +257,6 @@ public class UserControllerTest {
 
     @SneakyThrows
     @Test
-    @Ignore
     public void testGetListFriend() {
         User user = getAllFieldsUser();
         int userId = addUser(user);
