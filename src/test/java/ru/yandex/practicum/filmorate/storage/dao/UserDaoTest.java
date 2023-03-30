@@ -122,7 +122,7 @@ public class UserDaoTest {
 
 
         Assertions.assertEquals(0, saveUser.getFriendsIds().size());
-        Assertions.assertEquals(0, saveFriend.getFriendsIds().size());
+        Assertions.assertEquals(1, saveFriend.getFriendsIds().size());
 
     }
 
@@ -144,7 +144,7 @@ public class UserDaoTest {
         User saveFriend = userStorage.getUserById(friend.getId());
 
 
-        Assertions.assertEquals(0, saveUser.getFriendsIds().size());
+        Assertions.assertEquals(1, saveUser.getFriendsIds().size());
         Assertions.assertEquals(0, saveFriend.getFriendsIds().size());
 
     }

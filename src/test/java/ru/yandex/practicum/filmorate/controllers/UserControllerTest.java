@@ -238,13 +238,15 @@ public class UserControllerTest {
         int userId = addUser(user);
         int friendId = addUser(user);
 
+        addFriend(userId, friendId);
+
         String path = "/users/" + userId + "/friends/" + friendId;
 
         mockMvc.perform(delete(path)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        // проверяем, что друзья добавились первому пользователю
+        // проверяем, что друг удалился
         path = "/users/" + userId;
         mockMvc.perform(get(path)
                         .content(getJsonUser(user))

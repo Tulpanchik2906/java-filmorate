@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.dao;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.models.User;
 import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
 
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 @Component("UserDbStorage")
+@Slf4j
 public class UserDao implements UserStorage {
     private final JdbcTemplate jdbcTemplate;
 
@@ -30,12 +33,8 @@ public class UserDao implements UserStorage {
                 user.getLogin(),
                 user.getEmail(),
                 user.getBirthday());
-        // Добавить друзей
-        if (user.getFriendsIds() != null && !user.getFriendsIds().isEmpty()) {
-            for (int friendId : user.getFriendsIds()) {
-                addFriend(user.getId(), friendId);
-            }
-        }
+
+        log.info("Добавлен пользователь с id:" + user.getId());
     }
 
     @Override
@@ -47,11 +46,15 @@ public class UserDao implements UserStorage {
                 user.getEmail(),
                 user.getBirthday(),
                 user.getId());
+
+        log.info("Обновлен пользователь с id:" + user.getId());
     }
 
     @Override
     public void delete(User user) {
         jdbcTemplate.update("DELETE FROM USERS WHERE ID = ?", user.getId());
+
+        log.info("Удален пользователь с id:" + user.getId());
     }
 
     @Override
@@ -74,6 +77,7 @@ public class UserDao implements UserStorage {
     @Override
     public void clear() {
         jdbcTemplate.update("DELETE FROM USERS");
+        log.info("Удалены все пользователи");
     }
 
     @Override
@@ -93,20 +97,44 @@ public class UserDao implements UserStorage {
                     "UPDATE FRIENDSHIP SET status = true " +
                             "WHERE initiator_id = ? AND acceptor_id = ? ",
                     acceptorId, initiatorId);
+            log.info("Пользователи " + initiatorId + " и " + acceptorId + " дружат обоюдно.");
         } else {
             jdbcTemplate.update(
                     "INSERT INTO FRIENDSHIP values (?, ?, false)",
                     initiatorId,
                     acceptorId);
+            log.info("Пользователь " + initiatorId + " дружит односторонне с " + acceptorId);
         }
     }
 
     @Override
     public void deleteFriend(int initiatorId, int acceptorId) {
-        jdbcTemplate.update("DELETE FROM FRIENDSHIP " +
-                        "WHERE (initiator_id = ? AND acceptor_id = ?) OR " +
-                        "(initiator_id = ? AND acceptor_id = ?)",
-                initiatorId, acceptorId, acceptorId, initiatorId);
+        // Статус дружбы
+        List<Boolean> status = getStatusFriendship(initiatorId, acceptorId);
+        if (status.isEmpty()) {
+            throw new ValidationException("Пользовтели " + initiatorId
+                    + " " + acceptorId + "не друзья");
+        }
+
+        // Если дружба двусторонняя, то удаляем запись
+        // и добавляем односторонюю дружбу для acceptor
+        if (status.get(0)) {
+            jdbcTemplate.update("DELETE FROM FRIENDSHIP " +
+                            "WHERE (initiator_id = ? AND acceptor_id = ?) OR " +
+                            "(initiator_id = ? AND acceptor_id = ?)",
+                    initiatorId, acceptorId, acceptorId, initiatorId);
+            addFriend(acceptorId, initiatorId);
+
+            log.info("Дружба между " + initiatorId + " и "
+                    + acceptorId + "стала односторонней.");
+        } else {
+            // Иначе удалить дружбу инициатора с ассептером
+            jdbcTemplate.update("DELETE FROM FRIENDSHIP " +
+                            "WHERE (initiator_id = ? AND acceptor_id = ?)",
+                    initiatorId, acceptorId);
+
+            log.info("Дружба между " + initiatorId + " и " + acceptorId + "разорвана.");
+        }
     }
 
     public List<Integer> getFriendsByUserId(int userId) {
@@ -129,6 +157,7 @@ public class UserDao implements UserStorage {
         return status.size() == 1;
     }
 
+
     private User makeUser(ResultSet rs) throws SQLException {
         User user = new User();
 
@@ -144,5 +173,11 @@ public class UserDao implements UserStorage {
         return user;
     }
 
-
+    private List<Boolean> getStatusFriendship(int initiatorId, int acceptorId) {
+        return jdbcTemplate.queryForList(
+                "SELECT STATUS FROM FRIENDSHIP\n" +
+                        "WHERE (INITIATOR_ID = ? AND ACCEPTOR_ID  = ?) OR " +
+                        "(initiator_id = ? AND acceptor_id = ?)",
+                Boolean.class, initiatorId, acceptorId, acceptorId, initiatorId);
+    }
 }

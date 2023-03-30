@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.dao;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -16,6 +17,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @Component("FilmDbStorage")
+@Slf4j
 public class FilmDao implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
@@ -33,28 +35,25 @@ public class FilmDao implements FilmStorage {
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration());
+
+        log.info("В фильме с id: " + film.getId() + " добавлены основные поля.");
+
         // Добавить список жанров
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             for (Genre genre : film.getGenres()) {
                 jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id)\n" +
                         "VALUES (?, ?)", film.getId(), genre.getId());
             }
+            log.info("В фильме с id: " + film.getId() + " добавлены жанры.");
         }
         // Добавить рейтинг mpa
         if (film.getMpa() != null) {
             jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
                     "WHERE id = ?", film.getMpa().getId(), film.getId());
+
+            log.info("В фильме с id: " + film.getId() + " добавлен рейтинг mpa.");
         }
 
-        /*
-        //Добавить лайки
-        if (film.getLikeUserIds() != null && !film.getLikeUserIds().isEmpty()) {
-            for (Integer userId : film.getLikeUserIds()) {
-                addLike(film.getId(), userId);
-
-            }
-        }
-         */
     }
 
 
@@ -68,6 +67,9 @@ public class FilmDao implements FilmStorage {
                 film.getReleaseDate(),
                 film.getDuration(),
                 film.getId());
+
+        log.info("В фильме с id: " + film.getId() + " обновлены основные поля.");
+
         // Добавить список жанров
         // Но сначала удалить все жанры
         jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE FILM_ID = ?",
@@ -79,6 +81,8 @@ public class FilmDao implements FilmStorage {
             }
         }
 
+        log.info("В фильме с id: " + film.getId() + " обновлены жанры.");
+
         if (film.getMpa() != null) {
             jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
                     "WHERE id = ?", film.getMpa().getId(), film.getId());
@@ -86,22 +90,14 @@ public class FilmDao implements FilmStorage {
             jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = NULL " +
                     "WHERE id = ?", film.getId());
         }
-        // Добавить список лайков
-        // Но сначала удалить все лайки
-        /*
-        jdbcTemplate.update("DELETE FROM LIKES WHERE FILM_ID = ?",
-                film.getId());
-        if (film.getLikeUserIds() != null && !film.getLikeUserIds().isEmpty()) {
-            for (Integer userId : film.getLikeUserIds()) {
-                addLike(film.getId(), userId);
-            }
-        }
-         */
+
+        log.info("В фильме с id: " + film.getId() + " обновле рейтинг mpa.");
     }
 
     @Override
     public void delete(Film film) {
         jdbcTemplate.update("DELETE FROM FILMS WHERE ID = ?", film.getId());
+        log.info("Удален фильм с id: " + film.getId());
     }
 
     @Override
@@ -124,17 +120,20 @@ public class FilmDao implements FilmStorage {
     @Override
     public void clear() {
         jdbcTemplate.update("DELETE FROM FILMS");
+        log.info("Удалены все фильмы.");
     }
 
     public void addLike(int filmId, int userId) {
         jdbcTemplate.update("INSERT INTO LIKES (film_id, user_id) VALUES (?,?)",
                 filmId, userId);
+        log.info("Добавлен лайк от пользователя с id " + userId + " фильму с id " + filmId);
     }
 
     public void deleteLike(int filmId, int userId) {
         jdbcTemplate.update("DELETE FROM LIKES " +
                         "WHERE film_id = ? AND user_id = ?",
                 filmId, userId);
+        log.info("Удален лайк от пользователя с id " + userId + " фильму с id " + filmId);
     }
 
     @Override
@@ -197,6 +196,4 @@ public class FilmDao implements FilmStorage {
                         "ON FILMS.ID = LIKES.FILM_ID\n" +
                         "WHERE FILMS.ID = ?", Integer.class, film_id));
     }
-
-
 }
