@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.storage.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -107,8 +106,6 @@ public class FilmDaoTest {
         film.setId(2);
         filmStorage.add(film);
 
-        List<Film> films = filmStorage.findAll();
-
         filmStorage.clear();
 
         Assertions.assertTrue(filmStorage.findAll().isEmpty());
@@ -119,6 +116,8 @@ public class FilmDaoTest {
         Film film = getAllFieldsFilm();
         film.setLikeUserIds(new TreeSet<>());
         filmStorage.add(film);
+
+        userStorage.add(getAllFieldsUser(1));
 
         List<User> list = userStorage.findAll();
 
@@ -136,6 +135,7 @@ public class FilmDaoTest {
         film.setLikeUserIds(new TreeSet<>());
         filmStorage.add(film);
 
+        userStorage.add(getAllFieldsUser(1));
         List<User> list = userStorage.findAll();
 
         filmStorage.addLike(film.getId(), list.get(0).getId());
@@ -156,19 +156,17 @@ public class FilmDaoTest {
     }
 
     private Film getAllFieldsFilm() {
-        Film film = new Film();
-        film.setId(1);
-        film.setName("Титаник");
-        film.setDescription("Фильм о любви и затонувшем корабле.");
-        film.setReleaseDate(LocalDate.of(1997, 12, 19));
-        film.setDuration(194);
-        film.setMpa(getMpaForTitanic());
+        return Film
+                .builder()
+                .id(1)
+                .name("Титаник")
+                .description("Фильм о любви и затонувшем корабле.")
+                .releaseDate(LocalDate.of(1997, 12, 19))
+                .duration(194)
+                .mpa(getMpaForTitanic())
+                .genres(getGenresForTitanic())
+                .build();
 
-        film.setGenres(getGenresForTitanic());
-        film.setLikeUserIds(getLikesForTitanic());
-
-
-        return film;
     }
 
     private Set<Genre> getGenresForTitanic() {
@@ -196,31 +194,14 @@ public class FilmDaoTest {
         return ratingMpa;
     }
 
-    private Set<Integer> getLikesForTitanic() {
-
-        List<Integer> users = new ArrayList<>();
-
-        User user1 = getAllFieldsUser(1);
-        User user2 = getAllFieldsUser(2);
-
-        userStorage.add(user1);
-        userStorage.add(user2);
-
-        users.add(user1.getId());
-        users.add(user2.getId());
-
-        return new TreeSet<>(users);
-    }
-
     private User getAllFieldsUser(int id) {
-        User user = new User();
-        user.setId(id);
-        user.setName("Name user");
-        user.setLogin("Login user");
-        user.setEmail("user@yandex.ru");
-        user.setBirthday(LocalDate.of(1998, 10, 15));
-
-        return user;
+        return User.builder()
+                .id(1)
+                .name("Name user")
+                .login("Login user")
+                .email("user@yandex.ru")
+                .birthday(LocalDate.of(1998, 10, 15))
+                .build();
     }
 
 }

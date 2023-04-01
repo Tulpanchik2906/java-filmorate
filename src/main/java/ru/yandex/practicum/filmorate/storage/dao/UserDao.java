@@ -34,7 +34,7 @@ public class UserDao implements UserStorage {
                 user.getEmail(),
                 user.getBirthday());
 
-        log.info("Добавлен пользователь с id:" + user.getId());
+        log.info("Добавлен пользователь с id: {}.", user.getId());
     }
 
     @Override
@@ -47,14 +47,14 @@ public class UserDao implements UserStorage {
                 user.getBirthday(),
                 user.getId());
 
-        log.info("Обновлен пользователь с id:" + user.getId());
+        log.info("Обновлен пользователь с id: {}.", user.getId());
     }
 
     @Override
     public void delete(User user) {
         jdbcTemplate.update("DELETE FROM USERS WHERE ID = ?", user.getId());
 
-        log.info("Удален пользователь с id:" + user.getId());
+        log.info("Удален пользователь с id: {}.", user.getId());
     }
 
     @Override
@@ -77,7 +77,7 @@ public class UserDao implements UserStorage {
     @Override
     public void clear() {
         jdbcTemplate.update("DELETE FROM USERS");
-        log.info("Удалены все пользователи");
+        log.info("Удалены все пользователи.");
     }
 
     @Override
@@ -97,13 +97,14 @@ public class UserDao implements UserStorage {
                     "UPDATE FRIENDSHIP SET status = true " +
                             "WHERE initiator_id = ? AND acceptor_id = ? ",
                     acceptorId, initiatorId);
-            log.info("Пользователи " + initiatorId + " и " + acceptorId + " дружат обоюдно.");
+            log.info("Пользователи {} и {} дружат обоюдно.", initiatorId, acceptorId);
         } else {
             jdbcTemplate.update(
                     "INSERT INTO FRIENDSHIP values (?, ?, false)",
                     initiatorId,
                     acceptorId);
-            log.info("Пользователь " + initiatorId + " дружит односторонне с " + acceptorId);
+            log.info("Пользователь {} дружит односторонне с {}.",
+                    initiatorId, acceptorId);
         }
     }
 
@@ -113,7 +114,7 @@ public class UserDao implements UserStorage {
         List<Boolean> status = getStatusFriendship(initiatorId, acceptorId);
         if (status.isEmpty()) {
             throw new ValidationException("Пользовтели " + initiatorId
-                    + " " + acceptorId + "не друзья");
+                    + " " + acceptorId + " не друзья.");
         }
 
         // Если дружба двусторонняя, то удаляем запись
@@ -125,15 +126,15 @@ public class UserDao implements UserStorage {
                     initiatorId, acceptorId, acceptorId, initiatorId);
             addFriend(acceptorId, initiatorId);
 
-            log.info("Дружба между " + initiatorId + " и "
-                    + acceptorId + "стала односторонней.");
+            log.info("Дружба между {} и {} стала односторонней.",
+                    initiatorId, acceptorId);
         } else {
             // Иначе удалить дружбу инициатора с ассептером
             jdbcTemplate.update("DELETE FROM FRIENDSHIP " +
                             "WHERE (initiator_id = ? AND acceptor_id = ?)",
                     initiatorId, acceptorId);
 
-            log.info("Дружба между " + initiatorId + " и " + acceptorId + "разорвана.");
+            log.info("Дружба между {} и {} разорвана.", initiatorId, acceptorId);
         }
     }
 
@@ -159,18 +160,16 @@ public class UserDao implements UserStorage {
 
 
     private User makeUser(ResultSet rs) throws SQLException {
-        User user = new User();
+        int userId = rs.getInt("id");
+        return User.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .login(rs.getString("login"))
+                .email(rs.getString("email"))
+                .birthday(rs.getDate("birthday").toLocalDate())
+                .friendsIds(new TreeSet<>(getFriendsByUserId(userId)))
+                .build();
 
-        user.setId(rs.getInt("id"));
-        user.setName(rs.getString("name"));
-        user.setLogin(rs.getString("login"));
-        user.setEmail(rs.getString("email"));
-        user.setBirthday(rs.getDate("birthday").toLocalDate());
-
-        // Добавить список друзей.
-        user.setFriendsIds(new TreeSet<>(getFriendsByUserId(user.getId())));
-
-        return user;
     }
 
     private List<Boolean> getStatusFriendship(int initiatorId, int acceptorId) {

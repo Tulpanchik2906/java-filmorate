@@ -205,13 +205,13 @@ public class FilmControllerTest {
     }
 
     private Film getAllFieldsFilm() {
-        Film film = new Film();
-        film.setId(1);
-        film.setName("Титаник");
-        film.setDescription("Фильм о любви и затонувшем корабле.");
-        film.setReleaseDate(LocalDate.of(1997, 12, 19));
-        film.setDuration(194);
-        return film;
+        return Film.builder()
+                .id(1)
+                .name("Титаник")
+                .description("Фильм о любви и затонувшем корабле.")
+                .releaseDate(LocalDate.of(1997, 12, 19))
+                .duration(194)
+                .build();
     }
 
     private String getJsonFilm(Film film) throws JsonProcessingException {

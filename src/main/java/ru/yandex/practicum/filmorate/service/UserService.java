@@ -56,16 +56,19 @@ public class UserService {
 
     public List<User> getFriendsByUserId(int userId) {
         User user = getUserById(userId);
-        return user.getFriendsIds().stream().map(userStorage::getUserById).collect(Collectors.toList());
-
+        return user.getFriendsIds().stream()
+                .map(userStorage::getUserById)
+                .collect(Collectors.toList());
     }
 
     public List<User> getCommonFriends(int userId, int friendId) {
         User user = getUserById(userId);
         User friend = getUserById(friendId);
 
-        return user.getFriendsIds().stream().filter(id -> friend.getFriendsIds().contains(id))
-                .map(userStorage::getUserById).collect(Collectors.toList());
+        return user.getFriendsIds().stream()
+                .filter(id -> friend.getFriendsIds().contains(id))
+                .map(userStorage::getUserById)
+                .collect(Collectors.toList());
     }
 
     public void putFriend(int userId, int friendId) {

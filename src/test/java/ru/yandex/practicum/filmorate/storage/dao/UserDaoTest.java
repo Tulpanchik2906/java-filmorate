@@ -209,14 +209,13 @@ public class UserDaoTest {
     }
 
     private User getAllFieldsUser() {
-        User user = new User();
-        user.setId(1);
-        user.setName("Name user");
-        user.setLogin("Login user");
-        user.setEmail("user@yandex.ru");
-        user.setBirthday(LocalDate.of(1998, 10, 15));
-
-        return user;
+        return User.builder()
+                .id(1)
+                .name("Name user")
+                .login("Login user")
+                .email("user@yandex.ru")
+                .birthday(LocalDate.of(1998, 10, 15))
+                .build();
     }
 
 }

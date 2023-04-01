@@ -29,75 +29,29 @@ public class FilmDao implements FilmStorage {
 
     @Override
     public void add(Film film) {
-        jdbcTemplate.update("INSERT INTO FILMS ( id, name, description, release_date, duration)\n" +
-                        "VALUES (?, ?, ?, ?, ?)", film.getId(),
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration());
-
-        log.info("В фильме с id: " + film.getId() + " добавлены основные поля.");
-
-        // Добавить список жанров
-        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id)\n" +
-                        "VALUES (?, ?)", film.getId(), genre.getId());
-            }
-            log.info("В фильме с id: " + film.getId() + " добавлены жанры.");
-        }
-        // Добавить рейтинг mpa
-        if (film.getMpa() != null) {
-            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
-                    "WHERE id = ?", film.getMpa().getId(), film.getId());
-
-            log.info("В фильме с id: " + film.getId() + " добавлен рейтинг mpa.");
-        }
-
+        // Сохранить основные поля фильма
+        addBasicFieldsByFilm(film);
+        // Сохранить список жанров
+        addGenresByFilm(film);
+        // Сохранить рейтинг mpa
+        addRatingMpaByFilm(film);
     }
 
 
     @Override
     public void update(Film film) {
-        jdbcTemplate.update("UPDATE FILMS SET name = ?, " +
-                        "description = ?, release_date = ?, duration = ? " +
-                        "WHERE ID = ?",
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration(),
-                film.getId());
-
-        log.info("В фильме с id: " + film.getId() + " обновлены основные поля.");
-
-        // Добавить список жанров
-        // Но сначала удалить все жанры
-        jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE FILM_ID = ?",
-                film.getId());
-        if (film.getGenres() != null & !film.getGenres().isEmpty()) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id)\n" +
-                        "VALUES (?, ?) ", film.getId(), genre.getId());
-            }
-        }
-
-        log.info("В фильме с id: " + film.getId() + " обновлены жанры.");
-
-        if (film.getMpa() != null) {
-            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
-                    "WHERE id = ?", film.getMpa().getId(), film.getId());
-        } else {
-            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = NULL " +
-                    "WHERE id = ?", film.getId());
-        }
-
-        log.info("В фильме с id: " + film.getId() + " обновле рейтинг mpa.");
+        // Обновить основные поля фильма
+        updateBasicFieldsByFilm(film);
+        // Обновить список жанров
+        updateGenresByFilm(film);
+        // Обновить рейтинг MPA
+        updateRatingMpaByFilm(film);
     }
 
     @Override
     public void delete(Film film) {
         jdbcTemplate.update("DELETE FROM FILMS WHERE ID = ?", film.getId());
-        log.info("Удален фильм с id: " + film.getId());
+        log.info("Удален фильм с id: {}.", film.getId());
     }
 
     @Override
@@ -126,14 +80,16 @@ public class FilmDao implements FilmStorage {
     public void addLike(int filmId, int userId) {
         jdbcTemplate.update("INSERT INTO LIKES (film_id, user_id) VALUES (?,?)",
                 filmId, userId);
-        log.info("Добавлен лайк от пользователя с id " + userId + " фильму с id " + filmId);
+        log.info("Добавлен лайк от пользователя с id {} фильму с id {}.",
+                userId, filmId);
     }
 
     public void deleteLike(int filmId, int userId) {
         jdbcTemplate.update("DELETE FROM LIKES " +
                         "WHERE film_id = ? AND user_id = ?",
                 filmId, userId);
-        log.info("Удален лайк от пользователя с id " + userId + " фильму с id " + filmId);
+        log.info("Удален лайк от пользователя с id {} фильму с id {}.",
+                userId, filmId);
     }
 
     @Override
@@ -148,19 +104,18 @@ public class FilmDao implements FilmStorage {
     }
 
     private Film makeFilm(ResultSet rs) throws SQLException {
-        Film film = new Film();
+        int filmId = rs.getInt("id");
+        return Film.builder()
+                .id(filmId)
+                .name(rs.getString("name"))
+                .description(rs.getString("description"))
+                .releaseDate(rs.getDate("release_date").toLocalDate())
+                .duration(rs.getInt("duration"))
+                .genres(getGenres(filmId))
+                .mpa(getRatingMpaWithOnlyId(filmId))
+                .likeUserIds(getLikes(filmId))
+                .build();
 
-        film.setId(rs.getInt("id"));
-        film.setName(rs.getString("name"));
-        film.setDescription(rs.getString("description"));
-        film.setReleaseDate(rs.getDate("release_date").toLocalDate());
-        film.setDuration(rs.getInt("duration"));
-
-        film.setGenres(getGenres(film.getId()));
-        film.setMpa(getRatingMpaWithOnlyId(film.getId()));
-        film.setLikeUserIds(getLikes(film.getId()));
-
-        return film;
     }
 
     private Set<Genre> getGenres(int film_id) {
@@ -195,5 +150,71 @@ public class FilmDao implements FilmStorage {
                         "JOIN FILMS \n" +
                         "ON FILMS.ID = LIKES.FILM_ID\n" +
                         "WHERE FILMS.ID = ?", Integer.class, film_id));
+    }
+
+    private void addBasicFieldsByFilm(Film film) {
+        jdbcTemplate.update("INSERT INTO FILMS ( id, name, description, release_date, duration)\n" +
+                        "VALUES (?, ?, ?, ?, ?)", film.getId(),
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration());
+
+        log.info("В фильме с id: {} добавлены основные поля.", film.getId());
+    }
+
+    private void addGenresByFilm(Film film) {
+        if (film.getGenres() != null & !film.getGenres().isEmpty()) {
+            for (Genre genre : film.getGenres()) {
+                jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id)\n" +
+                        "VALUES (?, ?) ", film.getId(), genre.getId());
+            }
+        }
+
+        log.info("В фильме с id: {} добавлены жанры.", film.getId());
+    }
+
+    private void addRatingMpaByFilm(Film film) {
+        if (film.getMpa() != null) {
+            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
+                    "WHERE id = ?", film.getMpa().getId(), film.getId());
+
+            log.info("В фильме с id: {} добавлен рейтинг mpa.", film.getId());
+        }
+    }
+
+    private void updateBasicFieldsByFilm(Film film) {
+        jdbcTemplate.update("UPDATE FILMS SET name = ?, " +
+                        "description = ?, release_date = ?, duration = ? " +
+                        "WHERE ID = ?",
+                film.getName(),
+                film.getDescription(),
+                film.getReleaseDate(),
+                film.getDuration(),
+                film.getId());
+
+        log.info("В фильме с id: {} обновлены основные поля.", film.getId());
+    }
+
+    private void updateGenresByFilm(Film film) {
+        // Удалить все жанры
+        jdbcTemplate.update("DELETE FROM FILM_GENRE WHERE FILM_ID = ?",
+                film.getId());
+
+        log.info("В фильме с id: {} удалены все жанры.", film.getId());
+
+        addGenresByFilm(film);
+    }
+
+    private void updateRatingMpaByFilm(Film film) {
+        if (film.getMpa() != null) {
+            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = ? " +
+                    "WHERE id = ?", film.getMpa().getId(), film.getId());
+        } else {
+            jdbcTemplate.update("UPDATE FILMS SET RATING_MPA_ID = NULL " +
+                    "WHERE id = ?", film.getId());
+        }
+
+        log.info("В фильме с id: {} обновлен рейтинг mpa.", film.getId());
     }
 }
