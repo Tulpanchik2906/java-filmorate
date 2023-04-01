@@ -164,7 +164,7 @@ public class FilmDao implements FilmStorage {
     }
 
     private void addGenresByFilm(Film film) {
-        if (film.getGenres() != null & !film.getGenres().isEmpty()) {
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
             for (Genre genre : film.getGenres()) {
                 jdbcTemplate.update("INSERT INTO FILM_GENRE (film_id, genre_id)\n" +
                         "VALUES (?, ?) ", film.getId(), genre.getId());
