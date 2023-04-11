@@ -1,8 +1,8 @@
 package ru.yandex.practicum.filmorate.models;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 @Data
+@Builder
+@EqualsAndHashCode(of = "id")
 public class User {
 
     private int id;
@@ -29,11 +31,11 @@ public class User {
 
     private Set<Integer> friendsIds = new TreeSet<>();
 
-    public void addFriend(int friendId){
+    public void addFriend(int friendId) {
         friendsIds.add(friendId);
     }
 
-    public void deleteFriend(int friendId){
+    public void deleteFriend(int friendId) {
         friendsIds.remove(friendId);
     }
 }

@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,8 +36,8 @@ public class FilmControllerTest {
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    @BeforeEach
-    public void beforeEach() {
+    @AfterEach
+    public void afterEach() {
         filmController.clearFilms();
     }
 
@@ -63,8 +63,7 @@ public class FilmControllerTest {
 
         String jsonFilmList = "[{\"id\":1,\"name\":\"Титаник\"," +
                 "\"description\":\"Фильм о любви и затонувшем корабле.\"," +
-                "\"releaseDate\":\"1997-12-19\",\"duration\":194," +
-                "\"likeUserIds\":[]}]";
+                "\"releaseDate\":\"1997-12-19\",\"duration\":194,\"genres\":[],\"mpa\":null,\"likeUserIds\":[]}]";
         mockMvc.perform(get("/films")
                         .content(getJsonFilm(film))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -206,13 +205,13 @@ public class FilmControllerTest {
     }
 
     private Film getAllFieldsFilm() {
-        Film film = new Film();
-        film.setId(1);
-        film.setName("Титаник");
-        film.setDescription("Фильм о любви и затонувшем корабле.");
-        film.setReleaseDate(LocalDate.of(1997, 12, 19));
-        film.setDuration(194);
-        return film;
+        return Film.builder()
+                .id(1)
+                .name("Титаник")
+                .description("Фильм о любви и затонувшем корабле.")
+                .releaseDate(LocalDate.of(1997, 12, 19))
+                .duration(194)
+                .build();
     }
 
     private String getJsonFilm(Film film) throws JsonProcessingException {

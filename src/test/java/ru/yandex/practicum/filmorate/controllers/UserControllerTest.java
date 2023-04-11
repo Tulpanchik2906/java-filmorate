@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,14 +34,14 @@ public class UserControllerTest {
 
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    @BeforeEach
-    public void beforeEach() {
-        userController.clearFilms();
+    @AfterEach
+    public void afterEach() {
+        userController.clearUsers();
     }
 
     @SneakyThrows
     @Test
-    public void testErrorPostEmptyFilm() {
+    public void testErrorPostEmptyUser() {
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
@@ -49,7 +49,7 @@ public class UserControllerTest {
 
     @SneakyThrows
     @Test
-    public void testErrorPutEmptyFilm() {
+    public void testErrorPutEmptyUser() {
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError());
@@ -238,13 +238,15 @@ public class UserControllerTest {
         int userId = addUser(user);
         int friendId = addUser(user);
 
+        addFriend(userId, friendId);
+
         String path = "/users/" + userId + "/friends/" + friendId;
 
         mockMvc.perform(delete(path)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
-        // проверяем, что друзья добавились первому пользователю
+        // проверяем, что друг удалился
         path = "/users/" + userId;
         mockMvc.perform(get(path)
                         .content(getJsonUser(user))
@@ -267,7 +269,7 @@ public class UserControllerTest {
 
         String jsonExp = "[{\"id\":2,\"email\":\"user@yandex.ru\"," +
                 "\"login\":\"Login user\",\"name\":\"Name user\"," +
-                "\"birthday\":\"1998-10-15\",\"friendsIds\":[1]}]";
+                "\"birthday\":\"1998-10-15\",\"friendsIds\":[]}]";
 
         mockMvc.perform(get(path)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -275,18 +277,6 @@ public class UserControllerTest {
                 .andExpect(result -> Assertions.assertEquals(jsonExp,
                         result.getResponse().getContentAsString()));
 
-        // Проверка, что и у friend появился user в друзьях
-        path = "/users/" + friendId + "/friends/";
-
-        String jsonExp2 = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
-                "\"login\":\"Login user\",\"name\":\"Name user\"," +
-                "\"birthday\":\"1998-10-15\",\"friendsIds\":[2]}]";
-
-        mockMvc.perform(get(path)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(result -> Assertions.assertEquals(jsonExp2,
-                        result.getResponse().getContentAsString()));
     }
 
     @SneakyThrows
@@ -297,15 +287,15 @@ public class UserControllerTest {
         int friendId = addUser(user);
         int friendId2 = addUser(user);
 
-        addFriend(userId, friendId);
-        addFriend(userId, friendId2);
+        addFriend(friendId, userId);
+        addFriend(friendId2, userId);
 
         String path = "/users/" + friendId + "/friends/common/" + friendId2;
 
         String jsonExp = "[{\"id\":1,\"email\":\"user@yandex.ru\"," +
                 "\"login\":\"Login user\"," +
                 "\"name\":\"Name user\",\"birthday\":\"1998-10-15\"," +
-                "\"friendsIds\":[2,3]}]";
+                "\"friendsIds\":[]}]";
 
         mockMvc.perform(get(path)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -337,14 +327,13 @@ public class UserControllerTest {
 
 
     private User getAllFieldsUser() {
-        User user = new User();
-        user.setId(1);
-        user.setName("Name user");
-        user.setLogin("Login user");
-        user.setEmail("user@yandex.ru");
-        user.setBirthday(LocalDate.of(1998, 10, 15));
-
-        return user;
+        return User.builder()
+                .id(1)
+                .name("Name user")
+                .login("Login user")
+                .email("user@yandex.ru")
+                .birthday(LocalDate.of(1998, 10, 15))
+                .build();
     }
 
     private String getJsonUser(User user) throws JsonProcessingException {
