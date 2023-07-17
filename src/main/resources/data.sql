@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS likes (
     film_id INTEGER,
     CONSTRAINT fk_user FOREIGN KEY(user_id)
 		  REFERENCES users(id) ON DELETE CASCADE,
-	CONSTRAINT fk_film FOREIGN KEY(user_id)
+	CONSTRAINT fk_film FOREIGN KEY(film_id)
 		  REFERENCES films(id) ON DELETE CASCADE,
 	PRIMARY KEY (user_id, film_id)
 );
